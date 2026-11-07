@@ -49,6 +49,9 @@ install_from_link() {
   local root; root=$(dirname "$(dirname "$inst")")
   CANDIDCORE_VOLUME=/workspace COMFYUI_DIR="$COMFY" bash "$inst" "$root/nodes/candidcore_nodes.zip" "$COMFY" > /dev/null \
     || { echo ">> Candidcore nodes could not be installed"; rm -rf "$tmp"; return 1; }
+  if [ -d "$root/models" ]; then   # the model list and downloader that come with the package
+    mkdir -p /workspace/candidcore_extra/models && cp "$root"/models/* /workspace/candidcore_extra/models/ 2>/dev/null || true
+  fi
   mkdir -p "$VOL/user/default/workflows/Candidcore"
   cp "$root"/workflows/*.json "$VOL/user/default/workflows/Candidcore/" 2>/dev/null || true
   echo "$STAMP_NOW" > "$STAMP"
@@ -70,6 +73,18 @@ if [ -n "${CANDIDCORE_LINK:-}" ]; then
       fi ;;
     *) echo ">> CANDIDCORE_LINK must be a web link starting with https://" ;;
   esac
+fi
+
+# Models: CANDIDCORE_MODELS (for example basis, or basis,qwen,loras) downloads those groups in the background; ComfyUI opens at once.
+# Files that are already on the volume are skipped, so this is quick on later starts. CIVITAI_TOKEN is needed for the loras group.
+if [ -n "${CANDIDCORE_MODELS:-}" ]; then
+  DL=/workspace/candidcore_extra/models/download_models.sh
+  if [ -f "$DL" ]; then
+    echo ">> Downloading Candidcore models in the background ($CANDIDCORE_MODELS): press Refresh in ComfyUI when it says done"
+    ( MODELS_DIR="$VOL/models" bash "$DL" "$CANDIDCORE_MODELS" 2>&1 | tee -a /workspace/candidcore_extra/models.log ) &
+  else
+    echo ">> CANDIDCORE_MODELS is set but the downloader is not installed yet: set CANDIDCORE_LINK with your package link"
+  fi
 fi
 
 # The Candidcore nodes: install_candidcore.sh keeps them on the volume, so link them in again on every start.

@@ -35,6 +35,8 @@ bash install_candidcore.sh candidcore_nodes.zip
 
 Either way the nodes are kept on your volume and linked in again on every start.
 
+**Models.** Add the variable `CANDIDCORE_MODELS` (for example `basis`, or `basis,qwen,loras`) and the pod downloads those model groups to your volume in the background while ComfyUI opens; press Refresh in ComfyUI when the log says done. The `loras` group needs your own Civitai API token in `CIVITAI_TOKEN`. Files already on the volume are skipped.
+
 Put your model files in `/workspace/ComfyUI/models/` (the guide lists which files and where each goes). Your images land in `/workspace/ComfyUI/output/Candidcore/`.
 
 ## Update the image
