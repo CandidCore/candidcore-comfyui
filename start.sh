@@ -75,7 +75,7 @@ if [ -n "${CANDIDCORE_LINK:-}" ]; then
   esac
 fi
 
-# Models: CANDIDCORE_MODELS (for example basis, or basis,qwen,loras) downloads those groups in the background; ComfyUI opens at once.
+# Models: CANDIDCORE_MODELS (for example base, or base,qwen,loras) downloads those groups in the background; ComfyUI opens at once.
 # Files that are already on the volume are skipped, so this is quick on later starts. CIVITAI_TOKEN is needed for the loras group.
 if [ -n "${CANDIDCORE_MODELS:-}" ]; then
   DL=/workspace/candidcore_extra/models/download_models.sh
