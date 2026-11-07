@@ -13,6 +13,43 @@ for d in models input output user; do
   ln -s "$VOL/$d" "$COMFY/$d"
 done
 
+# One-link install: CANDIDCORE_LINK is the download link of your Candidcore package (set it in the template's environment variables).
+# The package is fetched once per link and again when the link changes (a new version has a new link). A failure never stops ComfyUI.
+install_from_link() {
+  local tmp inst
+  tmp=$(mktemp -d) || return 1
+  curl -fsSL --retry 3 --max-time 900 -o "$tmp/pkg.zip" "$CANDIDCORE_LINK" \
+    || { echo ">> Candidcore download failed: check that the link is complete and has not expired"; rm -rf "$tmp"; return 1; }
+  unzip -oq "$tmp/pkg.zip" -d "$tmp/pkg" \
+    || { echo ">> Candidcore download is not a zip: check the link"; rm -rf "$tmp"; return 1; }
+  inst=$(find "$tmp/pkg" -maxdepth 3 -name install_candidcore.sh | head -1)
+  [ -n "$inst" ] || { echo ">> install_candidcore.sh not found in the package"; rm -rf "$tmp"; return 1; }
+  local root; root=$(dirname "$(dirname "$inst")")
+  CANDIDCORE_VOLUME=/workspace COMFYUI_DIR="$COMFY" bash "$inst" "$root/nodes/candidcore_nodes.zip" "$COMFY" > /dev/null \
+    || { echo ">> Candidcore nodes could not be installed"; rm -rf "$tmp"; return 1; }
+  mkdir -p "$VOL/user/default/workflows/Candidcore"
+  cp "$root"/workflows/*.json "$VOL/user/default/workflows/Candidcore/" 2>/dev/null || true
+  echo "$STAMP_NOW" > "$STAMP"
+  rm -rf "$tmp"
+  echo ">> Candidcore installed from your link: nodes and workflows (folder Candidcore in the workflow list)"
+}
+
+STAMP=/workspace/candidcore_extra/link.sha
+if [ -n "${CANDIDCORE_LINK:-}" ]; then
+  case "$CANDIDCORE_LINK" in
+    http://*|https://*)
+      STAMP_NOW=$(printf %s "$CANDIDCORE_LINK" | sha256sum | cut -d' ' -f1)   # the link itself is never stored
+      if [ -f /workspace/candidcore_extra/candidcore_nodes/__init__.py ] && [ "$(cat "$STAMP" 2>/dev/null)" = "$STAMP_NOW" ]; then
+        echo ">> Candidcore already installed from this link"
+      else
+        mkdir -p /workspace/candidcore_extra
+        echo ">> Installing Candidcore from your link (first start with this link takes a minute)"
+        install_from_link || true
+      fi ;;
+    *) echo ">> CANDIDCORE_LINK must be a web link starting with https://" ;;
+  esac
+fi
+
 # The Candidcore nodes: install_candidcore.sh keeps them on the volume, so link them in again on every start.
 KEEP=/workspace/candidcore_extra/candidcore_nodes
 if [ -f "$KEEP/__init__.py" ]; then
@@ -20,7 +57,7 @@ if [ -f "$KEEP/__init__.py" ]; then
   ln -s "$KEEP" "$COMFY/custom_nodes/candidcore_nodes"
   echo ">> Candidcore nodes linked"
 else
-  echo ">> Candidcore nodes not installed yet: run install_candidcore.sh from your download, then restart the pod"
+  echo ">> Candidcore nodes not installed yet: set CANDIDCORE_LINK in the template, or run install_candidcore.sh from your download, then restart the pod"
 fi
 
 # Your own extra nodes: every folder in $VOL/extra_nodes with an __init__.py is linked, unless the image has that node.
