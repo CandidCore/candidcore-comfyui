@@ -39,6 +39,9 @@ RUN git clone https://github.com/ltdrdata/ComfyUI-Manager.git /opt/baseline_node
     && pip install -r /opt/baseline_nodes/ComfyUI-Manager/requirements.txt \
     && python -c "import git, toml, chardet"
 
+# The Manager's dialogs come out transparent in the current ComfyUI frontend; this small node gives them a background.
+COPY ui_fix /opt/baseline_nodes/candidcore_ui_fix
+
 # rgthree-comfy (MIT) gives the Power Lora Loader that one starter workflow uses.
 ARG RGTHREE_REF=bc48c6aaeca87bedbc14245d89f9bc6be37a630e
 RUN git clone https://github.com/rgthree/rgthree-comfy.git /opt/baseline_nodes/rgthree-comfy \

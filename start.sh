@@ -27,6 +27,14 @@ for n in /opt/baseline_nodes/*/; do
   fi
 done
 
+# A volume that ran another Manager (for example RunPod's own ComfyUI template) keeps a channel list that this Manager rejects,
+# which makes "Custom Nodes Manager" fail with "Failed to get custom node list". Set the old list aside; a fresh one is written on start.
+CH="$VOL/user/__manager/channels.list"
+if grep -qs "Comfy-Org/ComfyUI-Manager" "$CH"; then
+  mv "$CH" "$CH.bak"
+  echo ">> Manager channel list from another setup set aside (channels.list.bak)"
+fi
+
 # One-link install: CANDIDCORE_LINK is the download link of your Candidcore package (set it in the template's environment variables).
 # The package is fetched once per link and again when the link changes (a new version has a new link). A failure never stops ComfyUI.
 install_from_link() {
