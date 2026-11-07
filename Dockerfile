@@ -27,7 +27,7 @@ WORKDIR /opt/ComfyUI
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip install -r requirements.txt
 
-# ComfyUI's own Manager (install and update nodes, restart from the menu). start.sh switches it on with --enable-manager.
+# ComfyUI's own Manager (install and update nodes, restart from the menu). start.sh switches it on with --enable-manager-legacy-ui (the classic Manager button).
 RUN pip install -r manager_requirements.txt && pip show comfyui_manager > /dev/null
 
 # rgthree-comfy (MIT) gives the Power Lora Loader that one starter workflow uses.
