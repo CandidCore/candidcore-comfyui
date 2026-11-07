@@ -1,0 +1,8 @@
+.DS_Store
+__pycache__/
+.unpack/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+.env
