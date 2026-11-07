@@ -35,4 +35,4 @@ done
 
 cd "$COMFY"
 # ComfyUI answers 403 to a page opened from another site (the RunPod link) unless CORS is switched on. The pod is already reachable by its link, so this adds no exposure.
-exec /opt/venv/bin/python main.py --listen 0.0.0.0 --port 8188 --enable-cors-header "*" "$@"
+exec /opt/venv/bin/python main.py --listen 0.0.0.0 --port 8188 --enable-cors-header "*" --enable-manager "$@"

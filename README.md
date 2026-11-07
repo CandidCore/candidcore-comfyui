@@ -9,6 +9,7 @@ Candidcore makes candid, phone-photo-style images of **invented adult characters
 ## What is inside
 
 - ComfyUI, pinned to the version the workflows were tested on
+- ComfyUI's own Manager, switched on (install and update custom nodes from the menu)
 - rgthree-comfy (MIT), for the Power Lora Loader in the starter workflow
 - Python, PyTorch (CUDA 12.8, RTX 4090 and 5090) and ffmpeg
 

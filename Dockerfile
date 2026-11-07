@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       python3 python3-venv python3-dev git ffmpeg libgl1 libglib2.0-0 \
-      fonts-dejavu-core curl ca-certificates \
+      fonts-dejavu-core curl ca-certificates unzip \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m venv /opt/venv
@@ -26,6 +26,9 @@ WORKDIR /opt/ComfyUI
 
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip install -r requirements.txt
+
+# ComfyUI's own Manager (install and update nodes, restart from the menu). start.sh switches it on with --enable-manager.
+RUN pip install -r manager_requirements.txt && pip show comfyui_manager > /dev/null
 
 # rgthree-comfy (MIT) gives the Power Lora Loader that one starter workflow uses.
 ARG RGTHREE_REF=bc48c6aaeca87bedbc14245d89f9bc6be37a630e
