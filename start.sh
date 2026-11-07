@@ -13,6 +13,20 @@ for d in models input output user; do
   ln -s "$VOL/$d" "$COMFY/$d"
 done
 
+# custom_nodes lives on the volume, so nodes you install with the Manager survive a stop.
+# The image's own nodes (Manager, rgthree) are linked in; a folder of your own with the same name is left alone.
+mkdir -p "$VOL/custom_nodes"
+rm -rf "$COMFY/custom_nodes"
+ln -s "$VOL/custom_nodes" "$COMFY/custom_nodes"
+for n in /opt/baseline_nodes/*/; do
+  t="$VOL/custom_nodes/$(basename "$n")"
+  if [ -L "$t" ] || [ ! -e "$t" ]; then
+    rm -f "$t"; ln -s "${n%/}" "$t"
+  else
+    echo ">> keeping your own $(basename "$n") in custom_nodes"
+  fi
+done
+
 # One-link install: CANDIDCORE_LINK is the download link of your Candidcore package (set it in the template's environment variables).
 # The package is fetched once per link and again when the link changes (a new version has a new link). A failure never stops ComfyUI.
 install_from_link() {
@@ -72,4 +86,4 @@ done
 
 cd "$COMFY"
 # ComfyUI answers 403 to a page opened from another site (the RunPod link) unless CORS is switched on. The pod is already reachable by its link, so this adds no exposure.
-exec /opt/venv/bin/python main.py --listen 0.0.0.0 --port 8188 --enable-cors-header "*" --enable-manager-legacy-ui "$@"
+exec /opt/venv/bin/python main.py --listen 0.0.0.0 --port 8188 --enable-cors-header "*" "$@"

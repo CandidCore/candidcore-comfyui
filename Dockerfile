@@ -27,14 +27,23 @@ WORKDIR /opt/ComfyUI
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip install -r requirements.txt
 
-# ComfyUI's own Manager (install and update nodes, restart from the menu). start.sh switches it on with --enable-manager-legacy-ui (the classic Manager button).
-RUN pip install -r manager_requirements.txt && pip show comfyui_manager > /dev/null
+# Nodes that belong to the image live in /opt/baseline_nodes. start.sh links them into custom_nodes on the volume,
+# so nodes you install later survive a stop and the image's own nodes still update with the image.
+RUN mkdir -p /opt/baseline_nodes
+
+# The classic ComfyUI Manager (the blue Manager button in the top bar): install missing nodes, update, model manager.
+# GPL-3.0, cloned at build time and pinned. It is a custom node, so ComfyUI is started without --enable-manager.
+ARG MANAGER_REF=bd88cffa7166484cbd16c3eba8a5a377a20b01dc
+RUN git clone https://github.com/ltdrdata/ComfyUI-Manager.git /opt/baseline_nodes/ComfyUI-Manager \
+    && git -C /opt/baseline_nodes/ComfyUI-Manager checkout ${MANAGER_REF} \
+    && pip install -r /opt/baseline_nodes/ComfyUI-Manager/requirements.txt \
+    && python -c "import git, toml, chardet"
 
 # rgthree-comfy (MIT) gives the Power Lora Loader that one starter workflow uses.
 ARG RGTHREE_REF=bc48c6aaeca87bedbc14245d89f9bc6be37a630e
-RUN git clone https://github.com/rgthree/rgthree-comfy.git custom_nodes/rgthree-comfy \
-    && git -C custom_nodes/rgthree-comfy checkout ${RGTHREE_REF} \
-    && if [ -f custom_nodes/rgthree-comfy/requirements.txt ]; then pip install -r custom_nodes/rgthree-comfy/requirements.txt; fi
+RUN git clone https://github.com/rgthree/rgthree-comfy.git /opt/baseline_nodes/rgthree-comfy \
+    && git -C /opt/baseline_nodes/rgthree-comfy checkout ${RGTHREE_REF} \
+    && if [ -f /opt/baseline_nodes/rgthree-comfy/requirements.txt ]; then pip install -r /opt/baseline_nodes/rgthree-comfy/requirements.txt; fi
 
 # Fail the build if torch or the libraries the nodes use cannot import.
 RUN python -c "import torch, PIL, scipy, av; print('torch', torch.__version__)"
