@@ -40,7 +40,8 @@ fi
 install_from_link() {
   local tmp inst
   tmp=$(mktemp -d) || return 1
-  curl -fsSL --retry 3 --max-time 900 -o "$tmp/pkg.zip" "$CANDIDCORE_LINK" \
+  # Accept: text/html because Shopify download links answer the plain curl default (Accept: */*) with a "file not found" page
+  curl -fsSL -H 'Accept: text/html' --retry 3 --max-time 900 -o "$tmp/pkg.zip" "$CANDIDCORE_LINK" \
     || { echo ">> Candidcore download failed: check that the link is complete and has not expired"; rm -rf "$tmp"; return 1; }
   unzip -oq "$tmp/pkg.zip" -d "$tmp/pkg" \
     || { echo ">> Candidcore download is not a zip: check the link"; rm -rf "$tmp"; return 1; }
