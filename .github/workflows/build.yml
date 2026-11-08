@@ -1,6 +1,7 @@
 name: build-candidcore-comfyui
 
-# Builds the image on GitHub's x86 runners (linux/amd64, the architecture RunPod uses) and pushes it to GHCR.
+# Builds the image on GitHub's x86 runners (linux/amd64, the architecture RunPod uses) and pushes it to GHCR,
+# and also to Docker Hub when the repository secrets DOCKERHUB_USERNAME and DOCKERHUB_TOKEN exist (a pod may pull from one faster than the other).
 # Runs on every push to main and by hand from the Actions tab.
 on:
   push:
@@ -10,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      HAS_DOCKERHUB: ${{ secrets.DOCKERHUB_TOKEN != '' && secrets.DOCKERHUB_USERNAME != '' }}
     permissions:
       contents: read
       packages: write
@@ -36,6 +39,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Docker Hub ids and image names are lowercase, whatever capitals were typed into the secret.
+      - name: Docker Hub name in lowercase
+        if: env.HAS_DOCKERHUB == 'true'
+        env:
+          DH_RAW: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: echo "DH_USER=$(echo "$DH_RAW" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - name: Log in to Docker Hub
+        if: env.HAS_DOCKERHUB == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DH_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       # Image names must be lowercase, whatever capitals the account name has.
       - name: Read version and owner
         id: version
@@ -52,3 +69,5 @@ jobs:
           tags: |
             ghcr.io/${{ steps.version.outputs.owner }}/candidcore-comfyui:latest
             ghcr.io/${{ steps.version.outputs.owner }}/candidcore-comfyui:${{ steps.version.outputs.v }}
+            ${{ env.HAS_DOCKERHUB == 'true' && format('{0}/candidcore-comfyui:latest', env.DH_USER) || '' }}
+            ${{ env.HAS_DOCKERHUB == 'true' && format('{0}/candidcore-comfyui:{1}', env.DH_USER, steps.version.outputs.v) || '' }}

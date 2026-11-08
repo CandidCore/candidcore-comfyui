@@ -2,8 +2,9 @@
 # The Candidcore nodes and workflows are not in this image: you install them from your download (install_candidcore.sh).
 # Models and your own files live on the volume (/workspace), never in the image.
 
-# CUDA 12.8 covers RTX 4090 and RTX 5090 (Blackwell).
-FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+# CUDA 12.8 covers RTX 4090 and RTX 5090 (Blackwell). The small base is enough: the torch wheels bring their own cuDNN and cuBLAS,
+# and a smaller image downloads faster when a pod starts.
+FROM nvidia/cuda:12.8.1-base-ubuntu24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
@@ -24,6 +25,8 @@ RUN git clone https://github.com/comfyanonymous/ComfyUI.git /opt/ComfyUI \
     && cd /opt/ComfyUI && git checkout ${COMFYUI_REF}
 WORKDIR /opt/ComfyUI
 
+# Two steps so the pod downloads smaller layers (the CUDA libraries are the heavy part and come in the second step).
+RUN pip install --no-deps torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 RUN pip install -r requirements.txt
 
