@@ -14,7 +14,7 @@ for d in models input output user; do
 done
 
 # custom_nodes lives on the volume, so nodes you install with the Manager survive a stop.
-# The image's own nodes (Manager, rgthree) are linked in; a folder of your own with the same name is left alone.
+# The image's own nodes (Manager, rgthree, Impact Pack and Subpack) are linked in; a folder of your own with the same name is left alone.
 mkdir -p "$VOL/custom_nodes"
 rm -rf "$COMFY/custom_nodes"
 ln -s "$VOL/custom_nodes" "$COMFY/custom_nodes"
@@ -105,6 +105,20 @@ for n in "$VOL"/extra_nodes/*/; do
   if [ -f "$n/__init__.py" ] && [ ! -e "$COMFY/custom_nodes/$name" ]; then
     ln -s "${n%/}" "$COMFY/custom_nodes/$name"
     echo ">> extra node linked: $name"
+  fi
+done
+
+# Python packages live in the image, so a fresh start loses what nodes installed earlier (for example with the Manager).
+# Reinstall the requirements of every node on the volume; the pip cache on the volume keeps this quick. A failure never stops ComfyUI.
+export PIP_CACHE_DIR=/workspace/candidcore_extra/pip-cache
+for r in "$VOL"/custom_nodes/*/requirements.txt "$VOL"/extra_nodes/*/requirements.txt; do
+  [ -f "$r" ] || continue
+  case "$(readlink -f "$r")" in /opt/baseline_nodes/*) continue ;; esac   # the image's own nodes already have theirs
+  name="$(basename "$(dirname "$r")")"
+  if /opt/venv/bin/pip install -q -r "$r" > /dev/null 2>&1; then
+    echo ">> requirements installed: $name"
+  else
+    echo ">> requirements of $name could not be installed: that node may not load"
   fi
 done
 

@@ -9,8 +9,9 @@ Candidcore makes candid, phone-photo-style images of **invented adult characters
 ## What is inside
 
 - ComfyUI, pinned to the version the workflows were tested on
-- The classic ComfyUI Manager (GPL-3.0), already in the top bar: install missing nodes, update, model manager. Nodes you install with it are kept on your volume
+- The classic ComfyUI Manager (GPL-3.0), already in the top bar: install missing nodes, update, model manager. Nodes you install with it are kept on your volume, and their Python packages are installed again on every start
 - rgthree-comfy (MIT), for the Power Lora Loader in the starter workflow
+- ComfyUI Impact Pack (GPL-3.0) and Impact Subpack (AGPL-3.0, with ultralytics), for the detailers in 02 generate
 - Python, PyTorch (CUDA 12.8, RTX 4090 and 5090) and ffmpeg
 
 Not inside: the Candidcore nodes and workflows (they come in your download), model files, LoRAs and keys. Those stay on your volume.
@@ -35,7 +36,7 @@ bash install_candidcore.sh candidcore_nodes.zip
 
 Either way the nodes are kept on your volume and linked in again on every start.
 
-**Models.** Add the variable `CANDIDCORE_MODELS` (for example `base`, or `base,qwen,loras`) and the pod downloads those model groups to your volume in the background while ComfyUI opens; press Refresh in ComfyUI when the log says done. The `loras` group needs your own Civitai API token in `CIVITAI_TOKEN`. Files already on the volume are skipped.
+**Models.** The template sets `CANDIDCORE_MODELS` to `base,qwen,loras`: on the first start the pod downloads everything once to your volume (about 40 GB), in the background while ComfyUI opens. Add `detail` (about 9.6 GB) for the detailers in 02 generate. You can set it to fewer groups (for example `base`); press Refresh in ComfyUI when the log says done. The `loras` group needs your own Civitai API token in `CIVITAI_TOKEN`. Files already on the volume are skipped.
 
 Put your model files in `/workspace/ComfyUI/models/` (the guide lists which files and where each goes). Your images land in `/workspace/ComfyUI/output/Candidcore/`.
 

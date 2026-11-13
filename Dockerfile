@@ -51,8 +51,18 @@ RUN git clone https://github.com/rgthree/rgthree-comfy.git /opt/baseline_nodes/r
     && git -C /opt/baseline_nodes/rgthree-comfy checkout ${RGTHREE_REF} \
     && if [ -f /opt/baseline_nodes/rgthree-comfy/requirements.txt ]; then pip install -r /opt/baseline_nodes/rgthree-comfy/requirements.txt; fi
 
+# Impact Pack (GPL-3.0) and Impact Subpack (AGPL-3.0, ultralytics) run the detailers in 02 generate: the Candidcore detailer nodes call them by name.
+ARG IMPACT_REF=429d0159ad429e64d2b3916e6e7be9c22d025c3c
+ARG SUBPACK_REF=50c7b71a6a224734cc9b21963c6d1926816a97f1
+RUN git clone https://github.com/ltdrdata/ComfyUI-Impact-Pack.git /opt/baseline_nodes/ComfyUI-Impact-Pack \
+    && git -C /opt/baseline_nodes/ComfyUI-Impact-Pack checkout ${IMPACT_REF} \
+    && pip install -r /opt/baseline_nodes/ComfyUI-Impact-Pack/requirements.txt \
+    && git clone https://github.com/ltdrdata/ComfyUI-Impact-Subpack.git /opt/baseline_nodes/ComfyUI-Impact-Subpack \
+    && git -C /opt/baseline_nodes/ComfyUI-Impact-Subpack checkout ${SUBPACK_REF} \
+    && pip install -r /opt/baseline_nodes/ComfyUI-Impact-Subpack/requirements.txt
+
 # Fail the build if torch or the libraries the nodes use cannot import.
-RUN python -c "import torch, PIL, scipy, av; print('torch', torch.__version__)"
+RUN python -c "import torch, PIL, scipy, av, ultralytics, segment_anything; print('torch', torch.__version__)"
 
 RUN find /opt/ComfyUI -name "__pycache__" -type d -prune -exec rm -rf {} + || true
 
