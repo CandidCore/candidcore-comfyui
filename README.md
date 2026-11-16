@@ -36,7 +36,7 @@ bash install_candidcore.sh candidcore_nodes.zip
 
 Either way the nodes are kept on your volume and linked in again on every start.
 
-**Models.** The template sets `CANDIDCORE_MODELS` to `base,qwen,loras`: on the first start the pod downloads everything once to your volume (about 40 GB), in the background while ComfyUI opens. Add `detail` (about 9.6 GB) for the detailers in 02 generate. You can set it to fewer groups (for example `base`); press Refresh in ComfyUI when the log says done. The `loras` group needs your own Civitai API token in `CIVITAI_TOKEN`. Files already on the volume are skipped.
+**Models.** The template sets `CANDIDCORE_MODELS` to `base,qwen,loras,detail`: on the first start the pod downloads everything once to your volume (about 49 GB), in the background while ComfyUI opens. `detail` (about 9.6 GB) holds the models for the detailers in 02 generate. You can set it to fewer groups (for example `base`); press Refresh in ComfyUI when the log says done. The `loras` group needs your own Civitai API token in `CIVITAI_TOKEN`. Files already on the volume are skipped.
 
 Put your model files in `/workspace/ComfyUI/models/` (the guide lists which files and where each goes). Your images land in `/workspace/ComfyUI/output/Candidcore/`.
 
