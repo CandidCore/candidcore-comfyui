@@ -48,7 +48,7 @@ install_from_link() {
   inst=$(find "$tmp/pkg" -maxdepth 3 -name install_candidcore.sh | head -1)
   [ -n "$inst" ] || { echo ">> install_candidcore.sh not found in the package"; rm -rf "$tmp"; return 1; }
   local root; root=$(dirname "$(dirname "$inst")")
-  CANDIDCORE_VOLUME=/workspace COMFYUI_DIR="$COMFY" bash "$inst" "$root/nodes/candidcore_nodes.zip" "$COMFY" > /dev/null \
+  CANDIDCORE_VOLUME=/workspace COMFYUI_DIR="$COMFY" bash "$inst" "$(dirname "$inst")/candidcore_nodes.zip" "$COMFY" > /dev/null \
     || { echo ">> Candidcore nodes could not be installed"; rm -rf "$tmp"; return 1; }
   if [ -d "$root/models" ]; then   # the model list and downloader that come with the package
     mkdir -p /workspace/candidcore_extra/models && cp "$root"/models/* /workspace/candidcore_extra/models/ 2>/dev/null || true
